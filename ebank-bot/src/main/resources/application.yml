@@ -1,0 +1,48 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: ebank-bot
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY: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}
+      chat:
+        options:
+          model: gpt-4o-mini
+    mcp:
+      client:
+        enabled: true
+        name: ebank-mcp-client
+        version: 1.0.0
+        type: SYNC
+        request-timeout: 30s
+        sse:
+          connections:
+            customer-service:
+              url: http://localhost:8081
+            ebank-service:
+              url: http://localhost:8082
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+telegram:
+  bot:
+    enabled: ${TELEGRAM_BOT_ENABLED:false}
+    token: ${TELEGRAM_BOT_TOKEN:}
+
+discord:
+  bot:
+    enabled: ${DISCORD_BOT_ENABLED:false}
+    token: ${DISCORD_BOT_TOKEN:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
