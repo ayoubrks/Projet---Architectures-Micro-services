@@ -1,7 +1,0 @@
-ma\ebank\customerservice\web\CustomerRestController.class
-ma\ebank\customerservice\entities\Customer.class
-ma\ebank\customerservice\CustomerServiceApplication.class
-ma\ebank\customerservice\mcp\CustomerMcpTools.class
-ma\ebank\customerservice\repositories\CustomerRepository.class
-ma\ebank\customerservice\entities\Customer$CustomerBuilder.class
-ma\ebank\customerservice\services\CustomerService.class
