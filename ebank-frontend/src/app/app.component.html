@@ -1,0 +1,303 @@
+<div class="shell">
+  <!-- TOP NAVBAR -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="nav-left">
+        <a class="logo" (click)="page = 'dashboard'">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/>
+          </svg>
+          <span>e-Bank</span>
+        </a>
+
+        <nav class="nav-links">
+          <button [class.active]="page === 'dashboard'" (click)="page = 'dashboard'">Tableau de bord</button>
+          <button [class.active]="page === 'customers'" (click)="page = 'customers'">Clients</button>
+          <button [class.active]="page === 'accounts'" (click)="page = 'accounts'">Comptes</button>
+          <button [class.active]="page === 'transfer'" (click)="page = 'transfer'">Virements</button>
+          <button [class.active]="page === 'mcp'" (click)="page = 'mcp'">Outils MCP</button>
+        </nav>
+      </div>
+
+      <div class="nav-right">
+        <button class="btn-ghost" (click)="refreshAll()">Actualiser</button>
+        <div class="user-badge">
+          <span class="avatar">CA</span>
+          <span>Conseiller Agence</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="toast" class="toast">{{ toast }}</div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container">
+    <!-- DASHBOARD -->
+    <section *ngIf="page === 'dashboard'">
+      <div class="page-title">
+        <h1>Tableau de bord</h1>
+        <p>Synthèse des clients et des comptes gérés</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <span class="stat-label">Clients</span>
+          <strong class="stat-val">{{ customers.length }}</strong>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Comptes ouverts</span>
+          <strong class="stat-val">{{ accounts.length }}</strong>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Total MAD</span>
+          <strong class="stat-val">{{ totalMadBalance | number:'1.2-2' }} MAD</strong>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Total EUR</span>
+          <strong class="stat-val">{{ totalEurBalance | number:'1.2-2' }} EUR</strong>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-head">
+          <h2>Comptes bancaires</h2>
+          <button class="link-btn" (click)="page = 'accounts'">Gérer les comptes →</button>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Titulaire</th>
+              <th>Type</th>
+              <th class="right">Solde</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let acc of accounts">
+              <td class="code">{{ acc.id }}</td>
+              <td>{{ acc.customer ? (acc.customer.firstName + ' ' + acc.customer.lastName) : ('Client #' + acc.customerId) }}</td>
+              <td>{{ acc.type === 'CURRENT' ? 'Compte courant' : 'Compte épargne' }}</td>
+              <td class="right num"><strong>{{ acc.balance | number:'1.2-2' }} {{ acc.currency }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CUSTOMERS -->
+    <section *ngIf="page === 'customers'">
+      <div class="page-title row-between">
+        <div>
+          <h1>Clients</h1>
+          <p>Répertoire des clients enregistrés dans customer-service</p>
+        </div>
+        <button class="btn-blue" (click)="showCustomerForm = !showCustomerForm">
+          {{ showCustomerForm ? 'Annuler' : 'Nouveau client' }}
+        </button>
+      </div>
+
+      <div *ngIf="showCustomerForm" class="box form-panel">
+        <h3>Ajouter un client</h3>
+        <form (ngSubmit)="createCustomer()" class="grid-4">
+          <input [(ngModel)]="newCustomer.firstName" name="firstName" placeholder="Prénom" required />
+          <input [(ngModel)]="newCustomer.lastName" name="lastName" placeholder="Nom" required />
+          <input [(ngModel)]="newCustomer.email" name="email" placeholder="Email" required />
+          <input [(ngModel)]="newCustomer.phone" name="phone" placeholder="Téléphone" />
+          <button type="submit" class="btn-blue">Enregistrer</button>
+        </form>
+      </div>
+
+      <div class="box">
+        <div class="filter-bar">
+          <input [(ngModel)]="customerSearch" placeholder="Filtrer par nom, email ou téléphone..." />
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom complet</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of filteredCustomers">
+              <td class="code">{{ c.id }}</td>
+              <td><strong>{{ c.firstName }} {{ c.lastName }}</strong></td>
+              <td>{{ c.email }}</td>
+              <td class="code">{{ c.phone }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ACCOUNTS -->
+    <section *ngIf="page === 'accounts'">
+      <div class="page-title">
+        <h1>Comptes &amp; relevés</h1>
+        <p>Sélectionnez un compte pour consulter ses opérations ou saisir un mouvement</p>
+      </div>
+
+      <div class="two-col">
+        <div class="box">
+          <div class="box-head">
+            <h2>Comptes</h2>
+          </div>
+          <table class="table selectable">
+            <thead>
+              <tr>
+                <th>Compte</th>
+                <th>Titulaire</th>
+                <th class="right">Solde</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let acc of accounts" [class.active-row]="selectedAccountId === acc.id" (click)="selectAccount(acc.id)">
+                <td>
+                  <div class="code"><strong>{{ acc.id }}</strong></div>
+                  <div class="sub">{{ acc.type === 'CURRENT' ? 'Courant' : 'Épargne' }}</div>
+                </td>
+                <td>{{ acc.customer ? (acc.customer.firstName + ' ' + acc.customer.lastName) : ('Client #' + acc.customerId) }}</td>
+                <td class="right num"><strong>{{ acc.balance | number:'1.2-2' }} {{ acc.currency }}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box" *ngIf="selectedAccount">
+          <div class="box-head">
+            <h2>Relevé — {{ selectedAccount.id }}</h2>
+            <span class="code">{{ selectedAccount.balance | number:'1.2-2' }} {{ selectedAccount.currency }}</span>
+          </div>
+
+          <div class="op-controls">
+            <input type="number" [(ngModel)]="opAmount" min="1" placeholder="Montant" />
+            <input type="text" [(ngModel)]="opDescription" placeholder="Libellé" />
+            <button class="btn-green" (click)="creditAccount(selectedAccount.id)">Créditer</button>
+            <button class="btn-red" (click)="debitAccount(selectedAccount.id)">Débiter</button>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Libellé</th>
+                <th class="right">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let op of operations">
+                <td class="sub">{{ op.operationDate | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ op.description }}</td>
+                <td class="right num" [class.pos]="op.type === 'CREDIT'" [class.neg]="op.type === 'DEBIT'">
+                  {{ op.type === 'CREDIT' ? '+' : '-' }}{{ op.amount | number:'1.2-2' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRANSFER -->
+    <section *ngIf="page === 'transfer'">
+      <div class="page-title">
+        <h1>Virement bancaire</h1>
+        <p>Transférer des fonds entre deux comptes</p>
+      </div>
+
+      <div class="box form-narrow">
+        <div class="field">
+          <label>Compte à débiter</label>
+          <select [(ngModel)]="transferSource">
+            <option *ngFor="let acc of accounts" [value]="acc.id">
+              {{ acc.id }} — {{ acc.customer?.firstName }} {{ acc.customer?.lastName }} ({{ acc.balance | number:'1.2-2' }} {{ acc.currency }})
+            </option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Compte à créditer</label>
+          <select [(ngModel)]="transferDest">
+            <option *ngFor="let acc of accounts" [value]="acc.id">
+              {{ acc.id }} — {{ acc.customer?.firstName }} {{ acc.customer?.lastName }} ({{ acc.balance | number:'1.2-2' }} {{ acc.currency }})
+            </option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Montant</label>
+          <input type="number" [(ngModel)]="transferAmount" min="1" />
+        </div>
+        <div class="field">
+          <label>Motif</label>
+          <input type="text" [(ngModel)]="transferDesc" />
+        </div>
+        <button class="btn-blue" (click)="executeTransfer()">Confirmer le virement</button>
+      </div>
+    </section>
+
+    <!-- MCP -->
+    <section *ngIf="page === 'mcp'">
+      <div class="page-title">
+        <h1>Outils MCP</h1>
+        <p>{{ totalMcpTools }} outils exposés par les microservices via Model Context Protocol</p>
+      </div>
+
+      <div class="two-col">
+        <div *ngFor="let srv of mcpServers" class="box">
+          <div class="box-head">
+            <h2 class="code">{{ srv.serverInfo }}</h2>
+            <span class="sub">{{ srv.tools.length }} outils</span>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Outil</th>
+                <th>Rôle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of srv.tools">
+                <td class="code"><strong>{{ t.name }}</strong></td>
+                <td class="sub">{{ t.description }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FLOATING ASSISTANT WIDGET -->
+  <div class="chat-widget" [class.collapsed]="!chatOpen">
+    <div class="widget-header" (click)="chatOpen = !chatOpen">
+      <span>Assistant E-Bank</span>
+      <span class="widget-toggle">{{ chatOpen ? '—' : 'Ouvrir' }}</span>
+    </div>
+
+    <div *ngIf="chatOpen" class="widget-body">
+      <div class="widget-meta">
+        <span>Session :</span>
+        <input [(ngModel)]="conversationId" />
+        <button class="chip" (click)="sendPrompt('Liste tous les clients')">Clients</button>
+        <button class="chip" (click)="sendPrompt('Quel est le solde du compte ACC-001 ?')">Solde ACC-001</button>
+      </div>
+
+      <div class="widget-messages">
+        <div *ngFor="let m of messages" class="w-msg" [class.w-user]="m.sender === 'user'">
+          <div class="w-bubble">{{ m.text }}</div>
+          <div class="w-time">{{ m.time }}</div>
+        </div>
+        <div *ngIf="chatLoading" class="w-msg">
+          <div class="w-bubble muted">Recherche en cours...</div>
+        </div>
+      </div>
+
+      <form class="widget-form" (ngSubmit)="sendPrompt()">
+        <input [(ngModel)]="chatInput" name="chatInput" placeholder="Votre question..." autocomplete="off" />
+        <button type="submit" class="btn-blue" [disabled]="chatLoading || !chatInput.trim()">OK</button>
+      </form>
+    </div>
+  </div>
+</div>
