@@ -6,10 +6,11 @@ spring:
     name: ebank-bot
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY: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}
+      api-key: ${OPENAI_API_KEY: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}
+      base-url: https://api.groq.com/openai
       chat:
         options:
-          model: gpt-4o-mini
+          model: openai/gpt-oss-120b
     mcp:
       client:
         enabled: true
@@ -33,13 +34,13 @@ eureka:
 
 telegram:
   bot:
-    enabled: ${TELEGRAM_BOT_ENABLED:false}
-    token: ${TELEGRAM_BOT_TOKEN:}
+    enabled: ${TELEGRAM_BOT_ENABLED:true}
+    token: ${TELEGRAM_BOT_TOKEN:9059098599:AAHw1rQbLw90yxAdxn3gLV-6XMLI6qqjTig}
 
 discord:
   bot:
-    enabled: ${DISCORD_BOT_ENABLED:false}
-    token: ${DISCORD_BOT_TOKEN:}
+    enabled: ${DISCORD_BOT_ENABLED:true}
+    token: ${DISCORD_BOT_TOKEN:MTU3NDIxODEyNzkxNzQ0OTI4Nw.GUFHxe.oqtmsZven2sdjpkiN_N4PT-1Kt7LNF2I6oW1Hw}
 
 management:
   endpoints:
